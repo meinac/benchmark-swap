@@ -33,6 +33,16 @@ RSpec.describe Benchmark::Swap do
     expect { described_class.test }.to raise_error(ArgumentError, "a block is required")
   end
 
+  it "rejects an option benchmark-ips would silently ignore" do
+    expect { described_class.test(tiem: 2) { instance.call } }
+      .to raise_error(ArgumentError, /unknown option: tiem\. Known: warmup, time/)
+  end
+
+  it "names every unknown option" do
+    expect { described_class.test(tiem: 2, wamrup: 1) { instance.call } }
+      .to raise_error(ArgumentError, /unknown options: tiem, wamrup/)
+  end
+
   it "lists the methods it swapped" do
     run { instance.call }
 
@@ -73,7 +83,7 @@ RSpec.describe Benchmark::Swap do
     run { instance.call }
 
     expect(output.string).to include(
-      "WARNING both sides returned a different result",
+      "WARNING the two sides returned different results",
       "original: 4",
       "swapped: 5"
     )

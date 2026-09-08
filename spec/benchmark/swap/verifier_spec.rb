@@ -61,6 +61,37 @@ RSpec.describe Benchmark::Swap::Verifier do
     expect(outcome.original.to_s).to end_with("...")
   end
 
+  context "with a value that raises from == and inspect" do
+    let(:hostile) do
+      Class.new do
+        def ==(_other)
+          raise "no equality here"
+        end
+
+        def inspect
+          raise "no inspect here"
+        end
+      end
+    end
+
+    # The lambdas run through instance_exec, so self is the subject and a let
+    # is out of reach. A local closes over it instead.
+    it "counts it as a difference instead of raising" do
+      value = hostile
+      build(original: -> { 1 }, swapped: -> { value.new })
+
+      expect(verifier.call(swapper) { instance.call }).not_to be_match
+    end
+
+    it "reports it without raising" do
+      value = hostile
+      build(original: -> { value.new }, swapped: -> { 1 })
+      outcome = verifier.call(swapper) { instance.call }
+
+      expect(outcome.original.to_s).to eq("(cannot be shown)")
+    end
+  end
+
   it "restores the original bodies" do
     build(original: -> { 4 }, swapped: -> { 5 })
     verifier.call(swapper) { instance.call }

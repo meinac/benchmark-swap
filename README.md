@@ -70,6 +70,8 @@ original:  8479556.9 i/s
 
 Two "Warming up / Calculating" blocks and one "Comparison:" block are expected. Each side gets its own benchmark-ips run, then the two are compared with the original as the baseline.
 
+Pass `quiet: true` if you want only the swap list and the comparison.
+
 ## How it works
 
 1. **Discovery.** The block runs once under a Ruby `TracePoint` on the `:call` event. It collects every method that was actually called and has a twin with the suffix defined on the same owner. Only calls from the current thread count. A method whose twin lives on a different class or module (for example the original on a parent class, the twin on the child) is skipped. Frozen owners are skipped too.
@@ -87,7 +89,9 @@ The swap itself copies the twin's `UnboundMethod` body onto the original method 
 | `suffix:` | `"_perf"` | Suffix used to find the twin method |
 | `verify:` | `true` | Compare both sides once before benchmarking |
 | `output:` | `$stdout` | Where the gem's own report lines go |
-| anything else | | Passed to benchmark-ips, for example `time:` and `warmup:` |
+| anything else | | Passed to benchmark-ips config: `warmup`, `time`, `iterations`, `stats`, `confidence`, `quiet`, `suite` |
+
+Any other key raises `ArgumentError`, because benchmark-ips would otherwise ignore it and run with the defaults.
 
 The call returns a `Runner::Result` struct with `candidates`, `verification`, `original`, and `swapped`. `original` and `swapped` are benchmark-ips `Report` objects. It returns `nil` when no twin was called.
 

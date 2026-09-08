@@ -21,6 +21,10 @@ module Benchmark
           return value == other.value unless error || other.error
 
           other.error.instance_of?(error.class) && other.error.message == error.message
+        rescue StandardError
+          # Comparing is best effort, and this class promises a warning rather
+          # than a failure. A value that raises from == counts as a difference.
+          false
         end
 
         def to_s
@@ -28,6 +32,8 @@ module Benchmark
 
           text = value.inspect
           text.length > MAX_LENGTH ? "#{text[0, MAX_LENGTH]}..." : text
+        rescue StandardError
+          "(cannot be shown)"
         end
       end
 

@@ -10,7 +10,9 @@ module Benchmark
         else
           "#{owner}##{name}"
         end
-      rescue TypeError
+      rescue StandardError
+        # attached_object is interpolated, so the object decides what happens.
+        # Module#to_s on a singleton class needs no cooperation from it.
         "#{owner}##{name}"
       end
 

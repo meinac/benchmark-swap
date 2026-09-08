@@ -114,6 +114,21 @@ RSpec.describe Benchmark::Swap::Discovery do
     expect(candidates).to be_empty
   end
 
+  it "skips a frozen owner, which could not be swapped anyway" do
+    frozen_klass = Class.new do
+      def call
+        1
+      end
+
+      def call_perf
+        2
+      end
+    end
+    stub_const("Frozen", frozen_klass.freeze)
+
+    expect(discovery.call { Frozen.new.call }).to be_empty
+  end
+
   it "returns nothing when the block calls no Ruby method" do
     expect(discovery.call { 42 }).to be_empty
   end
