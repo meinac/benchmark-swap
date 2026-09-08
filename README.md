@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/meinac/benchmark-swap/actions/workflows/ci.yml/badge.svg)](https://github.com/meinac/benchmark-swap/actions/workflows/ci.yml)
 
-Compare two implementations of a method with benchmark-ips, without lifting the method out of its call chain into two standalone lambdas. That lift is slow to do and easy to get wrong when the method sits deep inside real code. `Benchmark::Swap` keeps the method where it lives and swaps its body in place.
+Compare two implementations of a method end to end, where the method already runs. `Benchmark::Swap` swaps the body in place, so your block calls the public entry point and the measurement covers the whole call chain.
+
+That is the point of the gem. A method measured on its own can report a speed-up that the caller never feels, because the rest of the call chain dwarfs it. The end-to-end number is the one that tells you whether the change is worth making. Lifting the method into two standalone lambdas gives you the isolated number instead, and it is slow to do and easy to get wrong when the method sits deep inside real code.
 
 Built for exploring performance changes inside a large Rails app from the Rails console.
 
@@ -101,6 +103,7 @@ The call returns a `Runner::Result` struct with `candidates`, `verification`, `o
 
 - The block runs several times: once for discovery, twice for verification, then many times per benchmark side. Side effects add up, so build fresh objects inside the block instead of reusing a memoised one.
 - If the block raises during discovery, the error propagates.
+- The check step compares the two results with `==`. A block that ends in a public entry point often returns an object that does not define `==`, so the two runs never compare equal and you get a warning about a difference that is not there. Return something comparable instead, for example a list of ids.
 - Only methods defined in Ruby are found. The TracePoint `:call` event does not fire for methods implemented in C, so an `attr_reader` original, or a method from a C extension, is skipped even when a twin exists next to it. Write the original in Ruby if you want to measure it.
 - While a side is being measured, the swap is visible to the whole process, not just the calling thread. Discovery only watches the current thread, but the swapped body is what every thread sees. So do not run this on a process that is serving real traffic.
 - Remember to delete the `_perf` method before you commit.
