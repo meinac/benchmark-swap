@@ -1,5 +1,7 @@
 # Benchmark::Swap
 
+[![CI](https://github.com/meinac/benchmark-swap/actions/workflows/ci.yml/badge.svg)](https://github.com/meinac/benchmark-swap/actions/workflows/ci.yml)
+
 Compare two implementations of a method with benchmark-ips, without lifting the method out of its call chain into two standalone lambdas. That lift is slow to do and easy to get wrong when the method sits deep inside real code. `Benchmark::Swap` keeps the method where it lives and swaps its body in place.
 
 Built for exploring performance changes inside a large Rails app from the Rails console.
